@@ -1,3 +1,3 @@
 # mandelbrot
 UNSW Task2B Assignment
-![alt tag](mandelbrot/bmpExample.PNG)
+![alt text](bmpExample.PNG "Example Render")

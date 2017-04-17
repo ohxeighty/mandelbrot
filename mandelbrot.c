@@ -20,7 +20,6 @@
 #define SIMPLE_SERVER_VERSION 1.0
 #define REQUEST_BUFFER_SIZE 1000
 #define DEFAULT_PORT 1917
-#define NUMBER_OF_PAGES_TO_SERVE 10
 #define BYTES_PER_PIXEL 3
 #define NUMBER_PLANES 1
 #define BITS_PER_PIXEL (BYTES_PER_PIXEL*8)
@@ -44,6 +43,7 @@ typedef struct _complexNumber{
 int waitForConnection (int serverSocket);
 int makeServerSocket (int portno);
 void serveBMP (int socket, double inputX, double inputY, int zoom); 
+static void serveHTML (int socket);
 double getDistance(double x1, double y1, double x2, double y2);
 int escapeSteps(double x, double y);
 void writeHeader(char *header); 
@@ -60,7 +60,7 @@ int main (int argc, char *argv[]) {
    
    char request[REQUEST_BUFFER_SIZE];
    int numberServed = 0;
-   while (numberServed < NUMBER_OF_PAGES_TO_SERVE) {
+   while (1) {
       
       printf ("*** So far served %d pages ***\n", numberServed);
       
@@ -84,7 +84,6 @@ int main (int argc, char *argv[]) {
       token = strtok(request, "/");
       // the null parameter indicates strtok to return the next token 
       token = strtok(NULL, "/");
-      printf("%s\n", token);
       
       if(sscanf(token,
          "tile_x%lf_y%lf_z%d.bmp HTTP",
@@ -94,30 +93,10 @@ int main (int argc, char *argv[]) {
             // parameters 
             serveBMP(connectionSocket, inputX, inputY, zoom);
          } else {
-            // Return javascript viewer
-            char *message; 
-            message =
-               "HTTP/1.0 200 Found\n"
-               "Content-Type: text/html\n"
-               "\n";
-            printf ("about to send=> %s\n", message);
-            write (connectionSocket, message, strlen (message));
-         
-            message =
-            "<!DOCTYPE html>\n"
-            "<script " 
-            "src=\"http://almondbread.cse.unsw.edu.au/tiles.js\">"
-            "</script>"
-            "\n";      
-            printf ("about to send=> %s\n", message);
-            write (connectionSocket, message, strlen (message));
+            serveHTML(connectionSocket);
+            
          }  
-      
-      
 
-      
-     
-      
       // close the connection after sending the page
       close(connectionSocket);
       numberServed++;
@@ -209,6 +188,25 @@ void serveBMP (int socket, double inputX, double inputY, int zoom) {
 
 }
 
+static void serveHTML (int socket) {
+   char* message;
+ 
+   // first send the http response header
+   message =
+      "HTTP/1.0 200 Found\n"
+      "Content-Type: text/html\n"
+      "\n";
+   printf ("about to send=> %s\n", message);
+   write (socket, message, strlen (message));
+ 
+   message =
+      "<!DOCTYPE html>\n"
+      "<script "
+      "src=\"http://almondbread.cse.unsw.edu.au/tiles.js\">"
+      "</script>"
+      "\n";      
+   write (socket, message, strlen (message));
+}
 
 // start the server listening on the specified port number
 int makeServerSocket (int portNumber) { 

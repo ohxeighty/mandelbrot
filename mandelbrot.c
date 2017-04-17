@@ -88,7 +88,7 @@ int main (int argc, char *argv[]) {
       if(sscanf(token,
          "tile_x%lf_y%lf_z%d.bmp HTTP",
          &inputX, &inputY, &zoom) == 3) {
-            printf("X: %f, Y:%f, Z:%f\n", inputX, inputY, zoom);
+            printf("X: %f, Y:%f, Z:%d\n", inputX, inputY, zoom);
             // Return mandelbrot set seeded with appropriate 
             // parameters 
             serveBMP(connectionSocket, inputX, inputY, zoom);
